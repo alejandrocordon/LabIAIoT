@@ -50,11 +50,12 @@ def descenso_gradiente(X, Y, alpha):
     stop = 0.1
     Theta = np.array([0., 0.])
     i = 0
-    # for i in range(1000):
-    return gradiente(X, Y, Theta, alpha)
-    coste_valor = coste(X, Y, NuevaTheta)
-    print("NuevaTheta:" + NuevaTheta)
-    # print("coste_valor:"+coste_valor)
+    for i in range(1500):
+        Theta = gradiente(X, Y, Theta, alpha)
+        costes = coste(X, Y, Theta)
+        print(Theta,costes)
+
+    return Theta, costes
 
 
 """
@@ -91,12 +92,11 @@ def pintarPuntos(X, Y):
     plt.clf()
 """
 
-
 def pintarPuntos(X, Y, Theta):
     plt.scatter(X, Y, marker='+', color='red')
     plt.plot(X, Theta[0] + Theta[1] * X, linestyle='-', color='blue')
     plt.savefig('mc.png')
-    # plt.show()
+    #plt.show()
     plt.clf()
 
 
@@ -127,7 +127,7 @@ def main():
     # añadimos una columna de 1's a la X
     X = np.hstack([np.ones([m, 1]), X])
     alpha = 0.01
-    Thetas = descenso_gradiente(X, Y, alpha)
+    Thetas,costes = descenso_gradiente(X, Y, alpha)
 
     pintarPuntos(X[:, 1], Y, Thetas)
 
