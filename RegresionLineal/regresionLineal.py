@@ -52,7 +52,7 @@ def descenso_gradiente(X, Y, alpha):
     i = 0
     # for i in range(1000):
     return gradiente(X, Y, Theta, alpha)
-    # coste_valor = coste(X, Y, NuevaTheta)
+    coste_valor = coste(X, Y, NuevaTheta)
     print("NuevaTheta:" + NuevaTheta)
     # print("coste_valor:"+coste_valor)
 
@@ -129,7 +129,7 @@ def main():
     alpha = 0.01
     Thetas = descenso_gradiente(X, Y, alpha)
 
-    pintarPuntos(X[:,1], Y, Thetas)
+    pintarPuntos(X[:, 1], Y, Thetas)
 
     print(Thetas)
     # a = make_data(m, n, X, Y) #X, Y, alpha)
