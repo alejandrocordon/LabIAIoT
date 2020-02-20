@@ -129,6 +129,13 @@ def pintarRecta(punto0, punto1):
 """
 
 
+def normalizar(X):
+    n = np.shape(X)[1]
+    Xn = X
+    for i in range(n):
+        Xn
+
+
 def main():
     # m = number of training examples
     # x = input
