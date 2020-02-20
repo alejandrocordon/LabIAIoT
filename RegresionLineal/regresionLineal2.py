@@ -135,7 +135,7 @@ def main():
     # y = output
     # (x,y) = one training example
     # (xi, yi) = ith training example
-    datos = carga_csv('ex1data1.csv')
+    datos = carga_csv('ex1data2.csv')
     X = datos[:, :-1]
     np.shape(X)  # (97, 1)
     Y = datos[:, -1]
