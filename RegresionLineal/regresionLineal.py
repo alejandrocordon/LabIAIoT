@@ -2,6 +2,8 @@ import numpy as np
 from pandas.io.parsers import read_csv
 import matplotlib.pyplot as plt
 
+x_max = 25
+y_max = 25
 
 def carga_csv(file_name):
     """carga el fichero csv especificado y lo devuelve en un array de numpy"""
@@ -15,6 +17,31 @@ def coste(X, Y, Theta):
     Aux = (H - Y) ** 2
     return Aux.sum() / (2 * len(X))
 
+
+def coste2(x, y, a, b):
+    m = len(x)
+    error = 0.0
+    for i in range(m):
+        hipotesis = a+b*x[i]
+        error +=  (y[i] - hipotesis) ** 2
+    return error / (2*m)
+
+
+def descenso_gradiente2(x, y, a, b, alpha, epochs):
+    m = len(x)
+    hist_coste = []
+    for ep in range(epochs):
+        b_deriv = 0
+        a_deriv = 0
+        for i in range(m):
+            hipotesis = a + b * x[i]
+            a_deriv += hipotesis - y[i]
+            b_deriv += (hipotesis - y[i]) * x[i]
+            hist_coste.append(coste(x, y, a, b))
+        a -= (a_deriv / m) * alpha
+        b -= (b_deriv / m) * alpha
+
+    return a, b, hist_coste
 
 def make_data(t0_range, t1_range, X, Y):
     """Genera las matrices X,Y,Z para generar un plot en 3D"""
@@ -93,9 +120,12 @@ def pintarPuntos(X, Y):
     plt.clf()
 """
 
-
 def pintarPuntos(X, Y, Theta):
+    plt.axis([0, x_max, 0, y_max])
+    #plt.plot(X, Y, "r")
+    plt.title(' Iteraciones')
     plt.scatter(X, Y, marker='+', color='red')
+    #plt.scatter(X, Y)
     plt.plot(X, Theta[0] + Theta[1] * X, linestyle='-', color='blue')
     plt.savefig('mc.png')
     plt.show()
@@ -107,6 +137,7 @@ def pintarCostes(array_costes):
     for x in array_costes:
         i = i + 1
         plt.scatter(i, x, marker='+', color='red')
+        #plt.plot(i,x)
     plt.savefig('costes.png')
     plt.show()
     plt.clf()
@@ -153,7 +184,7 @@ def main():
     pintarPuntos(X[:, 1], Y, Thetas)
     pintarCostes(array_costes)
 
-    Theta0, Theta1, Coste = make_data(10, 10, X, Y)
+    Theta0, Theta1, Coste = make_data(x_max, y_max, X, Y)
     pintarCurvas(Theta0, Theta1, costes)
 
     print(Thetas)

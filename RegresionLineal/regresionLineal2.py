@@ -131,9 +131,14 @@ def pintarRecta(punto0, punto1):
 
 def normalizar(X):
     n = np.shape(X)[1]
+    mu = np.array([0., 0.])
+    sigma = np.array([0., 0.])
     Xn = X
     for i in range(n):
-        Xn
+        mu[i] = (X[:, i].mean())
+        sigma[i] = (X[:, i].std())
+        Xn[:, i] = (X[:, i] - mu[i] / sigma[i])
+    return Xn, mu, sigma
 
 
 def main():
@@ -145,22 +150,25 @@ def main():
     datos = carga_csv('ex1data2.csv')
     X = datos[:, :-1]
     np.shape(X)  # (97, 1)
+
+    Xn, mu, sigma = normalizar(X)
+
     Y = datos[:, -1]
     np.shape(Y)  # (97,)
-    m = np.shape(X)[0]
-    n = np.shape(X)[1]
+    m = np.shape(Xn)[0]
+    n = np.shape(Xn)[1]
 
     array_costes = []
 
     # añadimos una columna de 1's a la X
-    X = np.hstack([np.ones([m, 1]), X])
+    X = np.hstack([np.ones([m, 1]), Xn])
     alpha = 0.01
-    Thetas, costes = descenso_gradiente(X, Y, alpha, array_costes)
+    Thetas, costes = descenso_gradiente(Xn, Y, alpha, array_costes)
 
-    pintarPuntos(X[:, 1], Y, Thetas)
+    pintarPuntos(Xn[:, 1], Y, Thetas)
     pintarCostes(array_costes)
 
-    Theta0, Theta1, Coste = make_data(10, 10, X, Y)
+    Theta0, Theta1, Coste = make_data([-10, 10],[-1,4], Xn, Y)
     pintarCurvas(Theta0, Theta1, costes)
 
     print(Thetas)
