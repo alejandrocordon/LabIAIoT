@@ -11,7 +11,7 @@ def carga_csv(file_name):
 
 def coste(X, Y, Theta):
     H = np.dot(X, Theta)
-    Aux = (H - Y) ** 2
+    Aux = sigmoid((H - Y) ** 2)
     return Aux.sum() / (2 * len(X))
 
 
