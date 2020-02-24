@@ -18,9 +18,14 @@ def sigmoid(x):
 
 
 def pinta_frontera_recta(X, Y, theta):
-    plt.figure()
-    x1_min, x1_max = X[:, 0].min(), X[:, 0].max()
-    x2_min, x2_max = X[:, 1].min(), X[:, 1].max()
+    #plt.figure()
+    pos = np.where(Y == 1)
+    plt.scatter(X[pos, 1], X[pos, 2], marker='+', c='k')
+    pos = np.where(Y == 0)
+    plt.scatter(X[pos, 1], X[pos, 2], marker='o', c='y')
+
+    x1_min, x1_max = X[:, 1].min(), X[:, 1].max()
+    x2_min, x2_max = X[:, 2].min(), X[:, 2].max()
 
     xx1, xx2 = np.meshgrid(np.linspace(x1_min, x1_max),
                            np.linspace(x2_min, x2_max))
@@ -33,8 +38,11 @@ def pinta_frontera_recta(X, Y, theta):
     # el cuarto parámetro es el valor de z cuya frontera se
     # quiere pintar
     plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='b')
-    plt.savefig("frontera.png")
-    plt.close()
+    #plt.savefig("frontera.png")
+    plt.show()
+    plt.clf()
+    #plt.close()
+
 
 
 def visualizacionDatos(X, Y):
@@ -80,18 +88,18 @@ def main():
     datos = carga_csv('ex2data1.csv')
     X = datos[:, :-1]
     Y = datos[:, -1]
-    visualizacionDatos(X, Y)
+    #visualizacionDatos(X, Y)
 
     m = np.shape(X)[0]
     # añadimos una columna de 1's a la X
     X = np.hstack([np.ones([m, 1]), X])
     #Theta = np.array([0., 0., 0.])
     Theta = np.zeros(3)
-
-    pinta_frontera_recta(X, Y, Theta)
-
     result = opt.fmin_tnc(func=cost, x0=Theta, fprime=gradient, args=(X, Y))
     theta_opt = result[0]
+    print('result:', result)
+    print('theta_opt:', theta_opt)
+    pinta_frontera_recta(X, Y, theta_opt)
 
 
 main()
