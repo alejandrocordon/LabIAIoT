@@ -1,8 +1,8 @@
 import numpy as np
+import sklearn
 from pandas.io.parsers import read_csv
 import matplotlib.pyplot as plt
 import scipy.optimize as opt
-import sklearn as skl
 
 
 
@@ -35,9 +35,11 @@ def pinta_frontera_recta(X, Y, theta):
     xx1, xx2 = np.meshgrid(np.linspace(x1_min, x1_max),
                            np.linspace(x2_min, x2_max))
 
-    h = sigmoid(np.c_[np.ones((xx1.ravel().shape[0], 1)),
-                      xx1.ravel(),
-                      xx2.ravel()].dot(theta))
+    #__init__(self, degree=2, interaction_only=False, include_bias=True,
+    h = sklearn.preprocessing.PolynomialFeatures(degree=6, interaction_only=False, include_bias=True)
+    #h = sigmoid(np.c_[np.ones((xx1.ravel().shape[0], 1)),
+     #                 xx1.ravel(),
+      #                xx2.ravel()].dot(theta))
     h = h.reshape(xx1.shape)
 
     # el cuarto parámetro es el valor de z cuya frontera se
@@ -90,7 +92,7 @@ def plot_decisionboundary(X, Y, theta, poly):
 
 
 def main():
-    datos = carga_csv('ex2data1.csv')
+    datos = carga_csv('ex2data2.csv')
     X = datos[:, :-1]
     Y = datos[:, -1]
     #visualizacionDatos(X, Y)
@@ -101,6 +103,9 @@ def main():
     #Theta = np.array([0., 0., 0.])
     Theta = np.zeros(3)
     result = opt.fmin_tnc(func=cost, x0=Theta, fprime=gradient, args=(X, Y))
+
+    #result = sklearn.preprocessing.PolynomialFeatures()
+
     theta_opt = result[0]
     print('result:', result)
     print('theta_opt:', theta_opt)
