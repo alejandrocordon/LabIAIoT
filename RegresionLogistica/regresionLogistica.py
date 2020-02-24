@@ -74,7 +74,7 @@ def plot_decisionboundary(X, Y, theta, poly):
     xx2.ravel()]).dot(theta))
     h = h.reshape(xx1.shape)
     plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='g')
-    plt.savefig("boundary.pdf")
+    plt.savefig("boundary.png")
     plt.close()
 
 
@@ -83,7 +83,8 @@ def main():
     X = datos[:, :-1]
     Y = datos[:, -1]
     visualizacionDatos(X, Y)
-    Theta = [0., 0.]
+
+    Theta = [0., 0., 0.]
     pinta_frontera_recta(X, Y, Theta)
 
 
