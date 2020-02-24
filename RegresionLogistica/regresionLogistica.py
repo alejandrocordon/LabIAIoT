@@ -51,12 +51,14 @@ def cost(theta, X, Y):
     H = sigmoid(np.matmul(X, theta))
     # cost = (- 1 / (len(X))) * np.sum( Y * np.log(H) + (1 - Y) * np.log(1 - H))
     cost = (- 1 / (len(X))) * (np.dot(Y, np.log(H)) + np.dot((1 - Y), np.log(1 - H)))
+    print('coste:',cost)
     return cost
 
 
 def gradient(theta, XX, Y):
     H = sigmoid(np.matmul(XX, theta))
     grad = (1 / len(Y)) * np.matmul(XX.T, H - Y)
+    print('gradiente:',grad)
     return grad
 
 
@@ -80,6 +82,9 @@ def main():
     Y = datos[:, -1]
     visualizacionDatos(X, Y)
 
+    m = np.shape(X)[0]
+    # añadimos una columna de 1's a la X
+    X = np.hstack([np.ones([m, 1]), X])
     #Theta = np.array([0., 0., 0.])
     Theta = np.zeros(3)
 
