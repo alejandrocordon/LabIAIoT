@@ -2,11 +2,11 @@ import numpy as np
 from pandas.io.parsers import read_csv
 import matplotlib.pyplot as plt
 
+x_max = 25
+y_max = 25
 
 def carga_csv(file_name):
-    """carga el fichero csv especificado y lo devuelve en un array de numpy"""
     valores = read_csv(file_name, header=None).values
-    # suponemos que siempre trabajaremos con float
     return valores.astype(float)
 
 
@@ -14,7 +14,6 @@ def coste(X, Y, Theta):
     H = np.dot(X, Theta)
     Aux = (H - Y) ** 2
     return Aux.sum() / (2 * len(X))
-
 
 def make_data(t0_range, t1_range, X, Y):
     """Genera las matrices X,Y,Z para generar un plot en 3D"""
@@ -30,6 +29,21 @@ def make_data(t0_range, t1_range, X, Y):
         Coste[ix, iy] = coste(X, Y, [Theta0[ix, iy], Theta1[ix, iy]])
     return [Theta0, Theta1, Coste]
 
+
+""" descenso gradiente 
+
+ Es una funcion para minimizar funciones
+ La idea es q hay q cambiar los valores de theta hasta que el coste sea minimo
+ 
+ Usamos la derivada en un punto
+ calculo la derivada del coste y eso dice donde debo ir
+ Si todo va bien, el coste cada vez es menor.
+ 
+ Es un método general de optimización
+  
+ """
+
+
 def descenso_gradiente(X, Y, alpha, array_costes):
     stop = 0.1
     Theta = np.array([0., 0.])
@@ -42,6 +56,7 @@ def descenso_gradiente(X, Y, alpha, array_costes):
 
     return Theta, costes
 
+
 def gradiente(X, Y, Theta, alpha):
     NuevaTheta = Theta
     m = np.shape(X)[0]
@@ -52,8 +67,13 @@ def gradiente(X, Y, Theta, alpha):
         Aux_i = Aux * X[:, i]
         NuevaTheta[i] -= (alpha / m) * Aux_i.sum()
     return NuevaTheta
+
 def pintarPuntos(X, Y, Theta):
+    plt.axis([0, x_max, 0, y_max])
+    #plt.plot(X, Y, "r")
+    plt.title(' Iteraciones')
     plt.scatter(X, Y, marker='+', color='red')
+    #plt.scatter(X, Y)
     plt.plot(X, Theta[0] + Theta[1] * X, linestyle='-', color='blue')
     plt.savefig('mc.png')
     plt.show()
@@ -65,6 +85,7 @@ def pintarCostes(array_costes):
     for x in array_costes:
         i = i + 1
         plt.scatter(i, x, marker='+', color='red')
+        #plt.plot(i,x)
     plt.savefig('costes.png')
     plt.show()
     plt.clf()
@@ -76,46 +97,31 @@ def pintarCurvas(Theta, Coste):
     plt.show()
     plt.clf()
 
-def normalizar(X):
-    n = np.shape(X)[1]
-    mu = np.array([0., 0.])
-    sigma = np.array([0., 0.])
-    Xn = X
-    for i in range(n):
-        mu[i] = (X[:, i].mean())
-        sigma[i] = (X[:, i].std())
-        Xn[:, i] = (X[:, i] - mu[i] / sigma[i])
-    return Xn, mu, sigma
-
-
 def main():
     # m = number of training examples
     # x = input
     # y = output
     # (x,y) = one training example
     # (xi, yi) = ith training example
-    datos = carga_csv('ex1data2.csv')
+    datos = carga_csv('ex1data1.csv')
     X = datos[:, :-1]
     np.shape(X)  # (97, 1)
-
-    Xn, mu, sigma = normalizar(X)
-
     Y = datos[:, -1]
     np.shape(Y)  # (97,)
-    m = np.shape(Xn)[0]
-    n = np.shape(Xn)[1]
+    m = np.shape(X)[0]
+    n = np.shape(X)[1]
 
     array_costes = []
 
     # añadimos una columna de 1's a la X
-    X = np.hstack([np.ones([m, 1]), Xn])
+    X = np.hstack([np.ones([m, 1]), X])
     alpha = 0.01
-    Thetas, costes = descenso_gradiente(Xn, Y, alpha, array_costes)
+    Thetas, costes = descenso_gradiente(X, Y, alpha, array_costes)
 
-    pintarPuntos(Xn[:, 1], Y, Thetas)
+    pintarPuntos(X[:, 1], Y, Thetas)
     pintarCostes(array_costes)
 
-    Theta0, Theta1, Coste = make_data([-10, 10],[-1,4], Xn, Y)
+    Theta0, Theta1, Coste = make_data(x_max, y_max, X, Y)
     pintarCurvas(Theta0, Theta1, costes)
 
     print(Thetas)
@@ -123,4 +129,3 @@ def main():
 
 main()
 print('terminado')
-
