@@ -9,6 +9,7 @@ def carga_csv(file_name):
     # suponemos que siempre trabajaremos con float
     return valores.astype(float)
 
+
 def coste(X, Y, Theta):
     H = np.dot(X, Theta)
     Aux = sigmoid((H - Y) ** 2)
@@ -19,23 +20,24 @@ def sigmoid(x):
     s = 1 / (1 + np.exp(-x))
     return s
 
+
 def pinta_frontera_recta(X, Y, theta):
     plt.figure()
     x1_min, x1_max = X[:, 0].min(), X[:, 0].max()
     x2_min, x2_max = X[:, 1].min(), X[:, 1].max()
 
     xx1, xx2 = np.meshgrid(np.linspace(x1_min, x1_max),
-    np.linspace(x2_min, x2_max))
+                           np.linspace(x2_min, x2_max))
 
     h = sigmoid(np.c_[np.ones((xx1.ravel().shape[0], 1)),
-    xx1.ravel(),
-    xx2.ravel()].dot(theta))
+                      xx1.ravel(),
+                      xx2.ravel()].dot(theta))
     h = h.reshape(xx1.shape)
 
     # el cuarto parámetro es el valor de z cuya frontera se
     # quiere pintar
     plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='b')
-    plt.savefig("frontera.pdf")
+    plt.savefig("frontera.png")
     plt.close()
 
 
@@ -48,17 +50,32 @@ def visualizacionDatos(X, Y):
     plt.clf()
 
 
-def descenso_gradiente(X, Y, alpha, array_costes):
-    stop = 0.1
-    Theta = np.array([0., 0.])
-    i = 0
-    for i in range(1500):
-        Theta = gradiente(X, Y, Theta, alpha)
-        costes = coste(X, Y, Theta)
-        array_costes.append(costes)
-        print(Theta, costes)
+def cost(theta, X, Y):
+    # H = sigmoid(np.matmul(X, np.transpose(theta)))
+    H = sigmoid(np.matmul(X, theta))
+    # cost = (- 1 / (len(X))) * np.sum( Y * np.log(H) + (1 - Y) * np.log(1 - H))
+    cost = (- 1 / (len(X))) * (np.dot(Y, np.log(H)) + np.dot((1 - Y), np.log(1 - H)))
+    return cost
 
-    return Theta, costes
+
+def gradient(theta, XX, Y):
+    H = sigmoid( np.matmul(XX, theta) )
+    grad = (1 / len(Y)) * np.matmul(XX.T, H - Y)
+    return grad
+
+
+def plot_decisionboundary(X, Y, theta, poly):
+    plt.figure()
+    x1_min, x1_max = X[:, 0].min(), X[:, 0].max()
+    x2_min, x2_max = X[:, 1].min(), X[:, 1].max()
+    xx1, xx2 = np.meshgrid(np.linspace(x1_min, x1_max),
+    np.linspace(x2_min, x2_max))
+    h = sigmoid(poly.fit_transform(np.c_[xx1.ravel(),
+    xx2.ravel()]).dot(theta))
+    h = h.reshape(xx1.shape)
+    plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='g')
+    plt.savefig("boundary.pdf")
+    plt.close()
 
 
 def main():
@@ -66,8 +83,8 @@ def main():
     X = datos[:, :-1]
     Y = datos[:, -1]
     visualizacionDatos(X, Y)
-
-
+    Theta = [0., 0.]
+    pinta_frontera_recta(X, Y, Theta)
 
 
 main()
