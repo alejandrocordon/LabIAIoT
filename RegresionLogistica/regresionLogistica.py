@@ -1,6 +1,7 @@
 import numpy as np
 from pandas.io.parsers import read_csv
 import matplotlib.pyplot as plt
+import scipy.optimize as opt
 
 
 def carga_csv(file_name):
@@ -9,11 +10,6 @@ def carga_csv(file_name):
     # suponemos que siempre trabajaremos con float
     return valores.astype(float)
 
-
-def coste(X, Y, Theta):
-    H = np.dot(X, Theta)
-    Aux = sigmoid((H - Y) ** 2)
-    return Aux.sum() / (2 * len(X))
 
 
 def sigmoid(x):
@@ -59,7 +55,7 @@ def cost(theta, X, Y):
 
 
 def gradient(theta, XX, Y):
-    H = sigmoid( np.matmul(XX, theta) )
+    H = sigmoid(np.matmul(XX, theta))
     grad = (1 / len(Y)) * np.matmul(XX.T, H - Y)
     return grad
 
@@ -84,8 +80,13 @@ def main():
     Y = datos[:, -1]
     visualizacionDatos(X, Y)
 
-    Theta = [0., 0., 0.]
+    #Theta = np.array([0., 0., 0.])
+    Theta = np.zeros(3)
+
     pinta_frontera_recta(X, Y, Theta)
+
+    result = opt.fmin_tnc(func=cost, x0=Theta, fprime=gradient, args=(X, Y))
+    theta_opt = result[0]
 
 
 main()
