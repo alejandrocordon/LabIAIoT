@@ -1,126 +1,273 @@
+# Standard imports. Importing seaborn for styling.
 import numpy as np
-import sklearn
-from sklearn.preprocessing import PolynomialFeatures
-from pandas.io.parsers import read_csv
 import matplotlib.pyplot as plt
-import scipy.optimize as opt
+import seaborn  seaborn.set_style('whitegrid')
+
+# Loading the data. The first two columns contain the exam scores and the third column contains the label.
+data = np.loadtxt('data/ex2data1.txt', delimiter=',')
+X, y = data[:,:2], data[:,2]
+
+# Viewing the imported values (first 5 rows)
+X[:5], y[:5]
 
 
-def carga_csv(file_name):
-    """carga el fichero csv especificado y lo devuelve en un array de numpy"""
-    valores = read_csv(file_name, header=None).values
-    # suponemos que siempre trabajaremos con float
-    return valores.astype(float)
+# Creating plotData method to display the figure where the axes are the two exam scores.
+def plotData(x, y, xlabel, ylabel, labelPos, labelNeg):
+    # Separating positive and negative scores (in this case 1 and 0 values):
+    pos = y == 1
+    neg = y == 0
+
+    # Scatter plotting the data, filtering them according the pos/neg values:
+    plt.scatter(x[pos, 0], x[pos, 1], s=30, c='darkblue', marker='+', label=labelPos)
+    plt.scatter(x[neg, 0], x[neg, 1], s=30, c='yellow', marker='o', edgecolors='b', label=labelNeg)
+
+    # Labels and limits:
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.xlim(x[:, 0].min(), x[:, 0].max())
+    plt.ylim(x[:, 1].min(), x[:, 1].max())
+
+    # Legend:
+    pst = plt.legend(loc='upper right', frameon=True)
+    pst.get_frame().set_edgecolor('k')
 
 
-def sigmoid(x):
-    s = 1 / (1 + np.exp(-x))
-    return s
+# Plotting the initial figure:
+plotData(X, y, 'Exam 1 score', 'Exam 2 score', 'Admitted', 'Not Admitted')
 
 
-def pinta_frontera_recta(X, Y, theta):
-    # plt.figure()
-    pos = np.where(Y == 1)
-    plt.scatter(X[pos, 1], X[pos, 2], marker='+', c='k')
-    pos = np.where(Y == 0)
-    plt.scatter(X[pos, 1], X[pos, 2], marker='o', c='y')
+# While using (return 1 / (1 + np.exp(-z))), per the sigmoid function, I was getting an overflow warning.
+# As a solution warning can be ignored, or the dtype can be changed to not cause the error/warning.
+# I used expit method from scipy to eliminate this issue.
+from scipy.special import expit
 
-    x1_min, x1_max = X[:, 1].min(), X[:, 1].max()
-    x2_min, x2_max = X[:, 2].min(), X[:, 2].max()
-
-    xx1, xx2 = np.meshgrid(np.linspace(x1_min, x1_max),
-                           np.linspace(x2_min, x2_max))
-
-    h = sigmoid(np.c_[np.ones((xx1.ravel().shape[0], 1)),
-                      xx1.ravel(),
-                      xx2.ravel()].dot(theta))
-    h = h.reshape(xx1.shape)
-
-    # el cuarto parámetro es el valor de z cuya frontera se
-    # quiere pintar
-    plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='b')
-    # plt.savefig("frontera.png")
-    plt.show()
-    plt.clf()
-    # plt.close()
+# Defining sigmoid function:
+def sigmoid(z):
+    # return 1 / (1 + np.exp(-z))
+    return expit(z)
 
 
-def visualizacionDatos(X, Y):
-    pos = np.where(Y == 1)
-    plt.scatter(X[pos, 0], X[pos, 1], marker='+', c='k')
-    pos = np.where(Y == 0)
-    plt.scatter(X[pos, 0], X[pos, 1], marker='o', c='y')
-    plt.show()
-    plt.clf()
+# Calculating,
+x_val = np.linspace(-10, 10, 10000)
+
+# and plotting the calculated sigmoid function:
+plt.plot(x_val, sigmoid(x_val))
+
+# Labels and limits
+plt.xlabel('x')
+plt.ylabel('sigmoid(x)')
+plt.xlim(x_val.min(), x_val.max())
+plt.ylim(0, 1)
 
 
-def cost(theta, X, Y):
-    # H = sigmoid(np.matmul(X, np.transpose(theta)))
-    H = sigmoid(np.matmul(X, theta))
-    cost = (- 1 / (len(X))) * np.sum(Y * np.log(H) + (1 - Y) * np.log(1 - H))
-    # cost = (- 1 / (len(X))) * (np.dot(Y, np.log(H)) + np.dot((1 - Y), np.log(1 - H)))
-    print('coste:', cost)
-    return cost
+# Defining costFunction method:
+def costFunction(theta, X, y):
+    # Number of training examples
+    m = len(y)
+
+    # eps = 1e-15  was taken from the solution by jellis18
+    # https://github.com/jellis18/ML-Course-Solutions/blob/master/ex2/ex2.ipynb
+    # It is tolerance for sigmoid function, fixes loss of precision error.
+    # Eliminates errors while using BFGS minimization in calculations using scipy.
+    eps = 1e-15
+
+    hThetaX = sigmoid(np.dot(X, theta))
+
+    J = - (np.dot(y, np.log(hThetaX)) + np.dot((1 - y), np.log(1 - hThetaX + eps))) / m
+
+    return J
 
 
-def coste2(x, theta):
-    H = sigmoid(np.dot(x, theta))
-    desa = (H < 0.5)
-    desaprobados = len(H[desa])
-    aprobados = len(H) - desaprobados
-    return aprobados, desaprobados
+# Defining gradientFunc:
+def gradientFunc(theta, X, y):
+    # Number of training examples
+    m = len(y)
+
+    hThetaX = sigmoid(np.dot(X, theta))
+
+    gradient = np.dot(X.T, (hThetaX - y)) / m
+
+    return gradient
 
 
-def gradient(theta, XX, Y):
-    H = sigmoid(np.matmul(XX, theta))
-    grad = (1 / len(Y)) * np.matmul(XX.T, H - Y)
-    print('gradiente:', grad)
-    return grad
+X = np.hstack((np.ones((X.shape[0],1)), X))
+
+theta = np.zeros(X.shape[1])
+theta
 
 
-def plot_decisionboundary(X, Y, theta, poly):
-    plt.figure()
-    x1_min, x1_max = X[:, 0].min(), X[:, 0].max()
-    x2_min, x2_max = X[:, 1].min(), X[:, 1].max()
-    xx1, xx2 = np.meshgrid(np.linspace(x1_min, x1_max), np.linspace(x2_min, x2_max))
-    h = sigmoid(poly.fit_transform(np.c_[xx1.ravel(), xx2.ravel()]).dot(theta))
-    h = h.reshape(xx1.shape)
-    plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='g')
-    plt.savefig("boundary2.png")
-    plt.close()
+
+J = costFunction(theta, X, y)
+gradient = gradientFunc(theta, X, y)
+
+# We should see that the cost is about 0.693 per the exercise:
+print("Cost: %0.3f"%(J))
+print("Gradient: {0}".format(gradient))
 
 
-def prueba(x, theta):
-    H = sigmoid(np.dot(x, theta))
-    desa = (H < 0.5)
-    desaprobados = len(H[desa])
-    aprobados = len(H) - desaprobados
-    return aprobados, desaprobados
+# Importing minimize from scipy:
+from scipy.optimize import minimize
+
+# Finding the best parameters for θ, using the methods we created earlier:
+# Expecting to see the cost around 0.203 per the assignment.
+result = minimize(costFunction, theta, args=(X,y), method='BFGS', jac=gradientFunc, options={'maxiter' : 400, 'disp': True})
+result
 
 
-def main():
-    datos = carga_csv('ex2data2.csv')
-    X = datos[:, :-1]
-    Y = datos[:, -1]
-    # visualizacionDatos(X, Y)
+# Assigning the calculated θ to a variable
+gradBFGS = result['x']
 
-    m = np.shape(X)[0]
-    # añadimos una columna de 1's a la X
-    X = np.hstack([np.ones([m, 1]), X])
-    # Theta = np.array([0., 0., 0.])
-    # Theta = np.zeros(3)
-    Theta = np.zeros(3)
-    result = opt.fmin_tnc(func=cost, x0=Theta, fprime=gradient, args=(X, Y))
+# Calculating x and y for the decision boundary
+plot_x = np.array([np.min(X[:, 2])-1, np.max(X[:, 2])+1])
 
-    #poly = sklearn.preprocessing.PolynomialFeatures(degree=6, interaction_only=False, include_bias=True)
+# From the decision boundary calculations x2 = (-1 / θ2) * (θ0 * x1 + θ0)
+plot_y = (-1 / gradBFGS[2]) * (gradBFGS[1] * plot_x + gradBFGS[0])
+plt.scatter(45, 85, s=30, c='r', marker='x', label='Ex.1 - 45, Ex.2 - 85')
 
-    theta_opt = result[0]
-    # print('result:', result)
-    # print('theta_opt:', theta_opt)
-    # pinta_frontera_recta(X, Y, theta_opt)
-
-    plot_decisionboundary(X, Y, theta_opt, result)
+# Plotting the data
+plotData(X[:,1:], y, 'Exam 1 score', 'Exam 2 score', 'Admitted', 'Not Admitted')
+plt.plot(plot_x, plot_y, c='b');
 
 
-main()
-print('terminado')
+
+# For a student with an Exam 1 score of 45 and an Exam 2 score of 85, you should expect
+# to see an admission probability of 0.776
+probability = sigmoid(np.dot(gradBFGS, np.array([1, 45.,85.])))
+
+print("Exam scores: 45 and 85")
+print("Probability of acceptance: %0.3f"%(probability))
+
+
+def predict(theta, X):
+    hThetaX = sigmoid(np.dot(X, theta))
+
+    arr = []
+    for h in hThetaX:
+        if (h > 0.5):
+            arr.append(1)
+        else:
+            arr.append(0)
+
+    return np.array(arr)
+
+
+# Prediction using calculated values of θ and given data set
+p = predict(gradBFGS, X)
+
+# Training accuracy
+print('Training Accuracy of the classifier: {0}%'.format(np.sum(p == y) / p.size * 100))
+
+
+
+
+data = np.loadtxt('data/ex2data2.txt', delimiter=',')
+X, y = data[:,:2], data[:,2]
+
+# Viewing the imported values (first 5 rows)
+X[:5], y[:5]
+
+
+plotData(X, y, 'Microchip Test 1', 'Microchip Test 2', 'Accepted', 'Rejected')
+
+# Importing PolynomialFeatures
+from sklearn.preprocessing import PolynomialFeatures
+
+# Creating the model
+poly = PolynomialFeatures(6)
+
+# Transforming the data into the sixth power polynomial
+X2 = poly.fit_transform(X)
+X2.shape
+
+
+# Defining regularized costFunction method:
+def costFunctionR(theta, X, y, lam):
+    # Number of training examples
+    m = len(y)
+
+    eps = 1e-15
+
+    hThetaX = sigmoid(np.dot(X, theta))
+
+    J = - (np.dot(y, np.log(hThetaX)) + np.dot((1 - y), np.log(1 - hThetaX + eps)) -
+           1 / 2 * lam * np.sum(np.square(theta[1:]))) / m
+
+    return J
+
+
+# Defining regularized gradientFunc:
+def gradientFuncR(theta, X, y, lam):
+    # Number of training examples
+    m = len(y)
+
+    hThetaX = sigmoid(np.dot(X, theta))
+
+    # We're not regularizing the parameter θ0, replacing it with 0
+    thetaNoZeroReg = np.insert(theta[1:], 0, 0)
+
+    gradient = (np.dot(X.T, (hThetaX - y)) + lam * thetaNoZeroReg) / m
+
+    return gradient
+
+
+
+# We add theta and initialize the parameters to 0's.
+initial_theta = np.zeros(X2.shape[1])
+initial_theta
+
+
+
+J = costFunctionR(initial_theta, X2, y, 1)
+gradient = gradientFuncR(initial_theta, X2, y, 1)
+
+# We should see that the cost is about 0.693 per the exercise:
+print("Cost: %0.3f"%(J))
+print("Gradient: {0}".format(gradient))
+
+
+
+
+
+result2 = minimize(costFunctionR, initial_theta, args=(X2, y, 1), method='BFGS', jac=gradientFuncR,
+                   options={'maxiter' : 400, 'disp': False})
+result2['x']
+
+
+def plotDecisionBoundary(X, y, title):
+    # Plot the data
+    plotData(X[:, 1:3], y, 'Microchip Test 1', 'Microchip Test 2', 'Accepted', 'Rejected')
+
+    # Defining the data to use in the meshgrid calculation. Outputting xx and yy ndarrays
+    x_min, x_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    y_min, y_max = X[:, 2].min() - 1, X[:, 2].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.02), np.arange(y_min, y_max, 0.02))
+
+    Z = sigmoid(poly.fit_transform(np.c_[xx.ravel(), yy.ravel()]).dot(result2['x']))
+    Z = Z.reshape(xx.shape)
+
+    # Plotting the contour plot
+    plt.contour(xx, yy, Z, [0.5], linewidths=1, colors='g')
+    plt.title(title)
+
+
+plt.figure(figsize=(6, 15))
+plt.subplots_adjust(hspace=0.3)
+
+# Creating 3 subplots using 3 different λ values
+for i, lam in enumerate([0, 1, 100]):
+    result2 = minimize(costFunctionR, initial_theta, args=(X2, y, lam), method='BFGS', jac=gradientFuncR,
+                       options={'maxiter': 400, 'disp': False})
+
+    if (lam == 0):
+        title = 'No regularization (Overfitting) (λ = 0)'
+    elif (lam == 100):
+        title = 'Too much regularization (Underfitting) (λ = 100)'
+    else:
+        title = 'Training data with decision boundary (λ = 1)'
+
+    plt.subplot(3, 1, i + 1)
+
+    # Plotting the decision boundary plot
+    plotDecisionBoundary(X2, y, title);
+
+
