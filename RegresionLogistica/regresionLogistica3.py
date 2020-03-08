@@ -12,7 +12,6 @@ from scipy.optimize import minimize
 from sklearn.preprocessing import PolynomialFeatures
 
 
-
 def carga_csv(file_name):
     """carga el fichero csv especificado y lo devuelve en un array de numpy"""
     valores = read_csv(file_name, header=None).values
@@ -20,10 +19,10 @@ def carga_csv(file_name):
     return valores.astype(float)
 
 
-
 '''def sigmoid(x):
     s = 1 / (1 + np.exp(-x))
     return s'''
+
 
 # Defining sigmoid function:
 def sigmoid(z):
@@ -31,9 +30,8 @@ def sigmoid(z):
     return expit(z)
 
 
-
 def pinta_frontera_recta(X, Y, theta):
-    #plt.figure()
+    # plt.figure()
     pos = np.where(Y == 1)
     plt.scatter(X[pos, 1], X[pos, 2], marker='+', c='k')
     pos = np.where(Y == 0)
@@ -53,11 +51,10 @@ def pinta_frontera_recta(X, Y, theta):
     # el cuarto parámetro es el valor de z cuya frontera se
     # quiere pintar
     plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='b')
-    #plt.savefig("frontera.png")
+    # plt.savefig("frontera.png")
     plt.show()
     plt.clf()
-    #plt.close()
-
+    # plt.close()
 
 
 def visualizacionDatos(X, Y):
@@ -74,7 +71,7 @@ def cost(theta, X, Y):
     H = sigmoid(np.matmul(X, theta))
     # cost = (- 1 / (len(X))) * np.sum( Y * np.log(H) + (1 - Y) * np.log(1 - H))
     cost = (- 1 / (len(X))) * (np.dot(Y, np.log(H)) + np.dot((1 - Y), np.log(1 - H)))
-    print('coste:',cost)
+    print('coste:', cost)
     return cost
 
 
@@ -97,7 +94,6 @@ def plotData(x, y, xlabel, ylabel, labelPos, labelNeg):
     # Legend:
     pst = plt.legend(loc='upper right', frameon=True)
     pst.get_frame().set_edgecolor('k')
-
 
 
 # Defining costFunction method:
@@ -135,14 +131,13 @@ def plot_decisionboundary(X, Y, theta, poly):
     x1_min, x1_max = X[:, 0].min(), X[:, 0].max()
     x2_min, x2_max = X[:, 1].min(), X[:, 1].max()
     xx1, xx2 = np.meshgrid(np.linspace(x1_min, x1_max),
-    np.linspace(x2_min, x2_max))
+                           np.linspace(x2_min, x2_max))
     h = sigmoid(poly.fit_transform(np.c_[xx1.ravel(),
-    xx2.ravel()]).dot(theta))
+                                         xx2.ravel()]).dot(theta))
     h = h.reshape(xx1.shape)
     plt.contour(xx1, xx2, h, [0.5], linewidths=1, colors='g')
     plt.savefig("boundary.png")
     plt.close()
-
 
 
 def predict(theta, X):
@@ -156,7 +151,6 @@ def predict(theta, X):
             arr.append(0)
 
     return np.array(arr)
-
 
 
 # Defining regularized costFunction method:
@@ -189,7 +183,6 @@ def gradientFuncR(theta, X, y, lam):
     return gradient
 
 
-
 def plotDecisionBoundary(X, y, title, poly, result2):
     # Plot the data
     plotData(X[:, 1:3], y, 'Microchip Test 1', 'Microchip Test 2', 'Accepted', 'Rejected')
@@ -205,9 +198,6 @@ def plotDecisionBoundary(X, y, title, poly, result2):
     # Plotting the contour plot
     plt.contour(xx, yy, Z, [0.5], linewidths=1, colors='g')
     plt.title(title)
-
-    return plt
-
 
 
 def main():
@@ -234,15 +224,8 @@ def main():
     gradient = gradientFuncR(initial_theta, X2, y, 1)
 
     # We should see that the cost is about 0.693 per the exercise:
-    print("Cost: %0.3f" % (J))
+    print("Cost: %0.3f" % J)
     print("Gradient: {0}".format(gradient))
-
-    #result2 = minimize(costFunctionR, initial_theta, args=(X2, y, 1), method='BFGS', jac=gradientFuncR,
-    #                   options={'maxiter': 400, 'disp': False})
-    #result2['x']
-
-    #plt.figure(figsize=(6, 15))
-    #plt.subplots_adjust(hspace=0.3)
 
     fig = plt.figure(figsize=(3, 1))
 
@@ -258,19 +241,10 @@ def main():
         else:
             title = 'Training data with decision boundary (λ = 1)'
 
-        #plt.subplot(3, 1, i + 1)
+        plt.subplot(3, 1, i + 1)
 
         # Plotting the decision boundary plot
-        plot = plotDecisionBoundary(X2, y, title, poly, result2);
-
-        fig.add_subplot(3, 1, i + 1)
-        #plt.savefig("boundary2.png")
-        plt.imshow(plot)
-
-
-
-
-
+        plotDecisionBoundary(X2, y, title, poly, result2);
 
 
 main()
