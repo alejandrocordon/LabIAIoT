@@ -37,15 +37,15 @@ def checkNNGradients(costNN, reg_param):
 
     # Compute Cost
     cost, grad = costNN(params_rn,
-                        num_entradas,
-                        num_ocultas,
-                        num_etiquetas,
-                        X, ys, reg_param)
+                                num_entradas,
+                                num_ocultas,
+                                num_etiquetas,
+                                X, ys, reg_param)
 
     def reduced_cost_func(p):
         """ Cheaply decorated nnCostFunction """
         return costNN(p, num_entradas, num_ocultas, num_etiquetas,
-                      X, ys, reg_param)[0]
+                                     X, ys, reg_param)[0]
 
     numgrad = cng.computeNumericalGradient(reduced_cost_func, params_rn)
 
@@ -56,7 +56,7 @@ def checkNNGradients(costNN, reg_param):
 
 
 def main():
-    resultado = checkNNGradients(nncost.nnCostFunction(), )
+    resultado = checkNNGradients(nncost.costNN, 0)
     print(resultado)
 
 
